@@ -1,0 +1,47 @@
+﻿<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+<MudThemeProvider Theme=_altDarkTheme IsDarkMode=true />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@code {
+    private readonly MudTheme _altDarkTheme = new()
+        {
+            PaletteDark = new PaletteDark()
+            {
+                Background = new(26, 26, 39, 255),
+                BackgroundGrey = new(21, 21, 33, 255),
+                Surface = new(30, 30, 45, 255),
+                DrawerBackground = new(26, 26, 39, 255),
+                DrawerText = new(146, 146, 159, 255),
+                DrawerIcon = new(146, 146, 159, 255),
+                AppbarBackground = new(26, 26, 39, 0.8),
+                LinesDefault = new(51, 50, 62, 255),
+                LinesInputs = new(255, 255, 255, 76),
+                TableLines = new(51, 50, 62, 255),
+                TableStriped = new(255, 255, 255, 0.2),
+                TableHover = new(0, 0, 0, 10),
+                Divider = new(41, 40, 56, 255),
+                DividerLight = new(255, 255, 255, 15),
+                ChipDefault = new(255, 255, 255, 40),
+                ChipDefaultHover = new(255, 255, 255, 61),
+                GrayDefault = "#9E9E9E",
+                GrayLight = "#2a2833",
+                GrayDark = "#757575",
+                GrayDarker = "#616161",
+                OverlayDark = "rgba(33,33,33,0.4980392156862745)",
+                OverlayLight = "#1e1e2d80",
+            }
+        };
+}

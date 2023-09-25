@@ -1,0 +1,50 @@
+﻿@page "/users/{Id:guid}"
+
+@inject IUserService UserService
+
+@if(_user == null && !_notFound)
+{
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+    return;
+}
+
+@if(_notFound)
+{
+    <MudText Typo="Typo.h2">Not found :^(</MudText>
+    return;
+}
+
+<MudAvatar Size="Size.Large" Color="Color.Primary" Class="my-4">@_user!.Name.First()</MudAvatar> @_user!.Name
+
+
+<MudTabs Outlined=true Elevation="1" PanelClass="p-3">
+    <MudTabPanel Text="Основная информация">
+        <MudTextField @bind-Value=_user.Email Label="Email" Class="mb-3"/>
+        <MudText Typo="Typo.body1">Ну или добавим любую информацию что тебе будет по душе</MudText>
+    </MudTabPanel>
+    <MudTabPanel Text="Доступ">
+
+        <MudText Typo="Typo.h6">Категории</MudText>
+        <MudDivider Light=true Class="mb-3" />
+
+        <MudText Typo="Typo.h6">Уроки</MudText>
+        <MudDivider Light=true Class="mb-3" />
+
+
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    private bool _notFound;
+    private User? _user;
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(3000);
+        _user = await UserService.GetUserById(Id);
+        _notFound = _user == null;
+    }
+}

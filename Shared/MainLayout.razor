@@ -1,0 +1,66 @@
+﻿@inherits LayoutComponentBase
+
+@inject NavigationManager NavigationManager
+
+<MudLayout>
+    <MudAppBar Elevation="1" Fixed=true Class="px-5">
+
+        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+
+        <MudTabs TabHeaderClass="bg-transparent" @bind-ActivePanelIndex=_activatedPanelIndex @ref=_mudTabs>
+            <MudTabPanel ID=@("/") Text="Уроки" OnClick=@(_ => NavigationManager.NavigateTo("/"))/>
+            <MudTabPanel ID=@("/admin") Text="Админка" OnClick=@(_ => NavigationManager.NavigateTo("/admin")) />
+        </MudTabs>
+        
+        <MudSpacer />
+
+        <MudMenu TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+            <ActivatorContent>
+                <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem>Профиль</MudMenuItem>
+                <MudMenuItem>Выйти</MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+
+    </MudAppBar>
+    <MudMainContent Class="px-10">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code{
+    private int _activatedPanelIndex;
+    private MudTabs _mudTabs;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        UpdateLocationForTabs(NavigationManager.Uri);
+        //NavigationManager.LocationChanged += (s, e) => UpdateLocationForTabs(e.Location);
+    }
+
+    private void UpdateLocationForTabs(string location)
+    {
+        var uri = new Uri(location);
+        var firstPathPart = uri.Segments.Length > 1 ? uri.Segments[1] : string.Empty;
+
+        if (!firstPathPart.StartsWith("/"))
+        {
+            firstPathPart = "/" + firstPathPart;
+        }
+
+        if (!firstPathPart.StartsWith("/admin"))
+        {
+            firstPathPart = "/";
+        }
+
+        if(_mudTabs == null)
+        {
+            _activatedPanelIndex = firstPathPart == "/" ? 0 : 1;
+            return;
+        }
+    }
+
+}

@@ -1,0 +1,51 @@
+﻿
+<MudDialog>
+    <DialogContent>
+        <MudNumericField @bind-Value:get=_countForAdd @bind-Value:set=SetCountForAdd Min=1 Max=25 Label="Количество участников"/>
+
+        @foreach(var user in _usersForAdd)
+        {
+
+            <MudCard Outlined=true @key=user Class="my-3">
+                <MudCardContent>
+                    <MudTextField @bind-Value=@user.Name Label="Имя" Class="mt-0" />
+                    <MudTextField @bind-Value=@user.Email Label="Email" />
+                </MudCardContent>
+            </MudCard>
+
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Добавить</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    private List<User> _usersForAdd = new()
+    {
+        new(),
+    };
+    private int _countForAdd = 1;
+    
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void SetCountForAdd(int value)
+    {
+
+        if(value >= _usersForAdd.Count)
+        {
+            for (var i = 0; i <= value - _usersForAdd.Count; i++)
+            {
+                _usersForAdd.Add(new());
+            }
+        }
+
+        _countForAdd = value;
+    }
+
+    void Submit() => MudDialog.Close(_usersForAdd);
+    void Cancel() => MudDialog.Cancel();
+}

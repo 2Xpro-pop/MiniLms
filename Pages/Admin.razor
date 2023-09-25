@@ -1,0 +1,151 @@
+﻿@page "/admin"
+
+@inject IUserService UserService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h2">Админка</MudText>
+
+<MudExpansionPanel Text="Пользователи" Class="mt-3">
+    <MudTable Items=_users 
+              Hover=true 
+              Breakpoint="Breakpoint.Sm" 
+              Loading=_usersLoading
+              Elevation=10 
+              LoadingProgressColor="Color.Info">
+        <ToolBarContent>
+            <MudButton Color="Color.Primary" Class="mt-0" OnClick=OpenUserAddDialog>Добавить</MudButton>
+            <MudSpacer/>
+            <MudTextField @bind-Value="_searchUsers" 
+                          Placeholder="Поиск"  
+                          Adornment="Adornment.Start" 
+                          AdornmentIcon="@Icons.Material.Filled.Search" 
+                          IconSize="Size.Medium" 
+                          Class="mt-0" />
+        </ToolBarContent>
+        <ColGroup>
+            <col class="w-sm-40"/>
+            <col style="width: 40%" />
+            <col style="width: 20%"/>
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Имя</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh Style="text-align:center"><MudIcon Icon="@Icons.Material.Filled.Edit" /></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.Email</MudTd>
+            <MudTd>
+                <div class="ta-center-sm">
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" OnClick="@(_ => NavigationManager.NavigateTo($"users/{context.Id}"))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(_ => RemoveUser(context))" />
+                </div>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudExpansionPanel>
+
+<MudExpansionPanel Text="Категории уроков" Class="mt-3">
+    <MudTable Items=_categories Hover=true Breakpoint="Breakpoint.Sm" Elevation=10 LoadingProgressColor="Color.Info">
+        <ToolBarContent>
+            <MudButton Color="Color.Primary" Class="mt-0">Добавить</MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchCategories"
+                          Placeholder="Поиск"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0" />
+        </ToolBarContent>
+        <ColGroup>
+            <col class="w-sm-40" />
+            <col style="width: 40%" />
+            <col style="width: 20%" />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Имя</MudTh>
+            <MudTh>Количество уроков</MudTh>
+            <MudTh><MudIcon Icon="@Icons.Material.Filled.Edit" /></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>3</MudTd>
+            <MudTd>
+                <div class="ta-center-sm">
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" />
+                </div>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudExpansionPanel>
+
+
+@code {
+    private bool _usersLoading;
+    private string? _searchUsers;
+    private string? _searchCategories;
+    private IEnumerable<User> _users = Array.Empty<User>();
+    private IEnumerable<Category> _categories = Array.Empty<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await UserService.GetAllUsers();
+
+
+    }
+
+    public async Task OpenUserAddDialog()
+    {
+        var reference = await DialogService.ShowAsync<AddUserDialog>();
+        var result = await reference.Result;
+
+        if(result.Data is IEnumerable<User> usersForAdd)
+        {
+            try
+            {
+                _usersLoading = true;
+                this.StateHasChanged();
+                await Task.Delay(2000);
+                await UserService.AddUsers(usersForAdd);
+                _users = await UserService.GetAllUsers();
+                _usersLoading = false;
+                this.StateHasChanged();
+                Snackbar.Add("Пользователи добавлены!", Severity.Success);
+            }
+            catch
+            {
+                Snackbar.Add("Произошла ошибка!", Severity.Error);
+            }
+            finally
+            {
+                _usersLoading = false;
+            }
+        }
+    }
+
+    public async Task RemoveUser(User user)
+    {
+        _usersLoading = true;
+        this.StateHasChanged();
+        try
+        {
+            await UserService.DeleteUser(user);
+            await Task.Delay(2000);
+            _users = await UserService.GetAllUsers();
+            _usersLoading = false;
+            this.StateHasChanged();
+            Snackbar.Add("Пользователь удален!", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Произошла ошибка!", Severity.Error);
+        }
+        finally
+        {
+            _usersLoading = false;
+        }
+    }
+}

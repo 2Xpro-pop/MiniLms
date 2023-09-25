@@ -1,0 +1,39 @@
+﻿@page "/"
+
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Index</PageTitle>
+
+
+<MudTimeline TimelineOrientation="TimelineOrientation.Vertical"
+             TimelinePosition="TimelinePosition.Alternate"
+             DisableModifiers=false>
+    @foreach(var category in _categories)
+    {
+        <MudTimelineItem Icon="@category.Icon" Color="Enum.Parse<Color>(category.Color)" Variant="Variant.Filled">
+            <ItemContent>
+                <MudCard Outlined=true>
+                    <MudCardContent>
+                        <MudText Color="Enum.Parse<Color>(category.Color)" Typo="Typo.h6" GutterBottom="true">@category.Name</MudText>
+                        <MudText>@category.Description</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" 
+                            OnClick="@(_ => NavigationManager.NavigateTo($"/category/{category.Id}"))">Изучать</MudButton>
+                    </MudCardActions>
+                </MudCard>
+                
+            </ItemContent>
+        </MudTimelineItem>
+    }
+</MudTimeline>
+
+@code{
+    private IEnumerable<Category> _categories = Array.Empty<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await CategoryService.GetCategories();
+    }
+}
