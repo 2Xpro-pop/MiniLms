@@ -26,7 +26,7 @@ jobs:
     - name: Publish .NET Core Project
       run: dotnet publish MiniLms.csproj -c Release --output release --nologo
 
-    # меняем '/' на '/BlazorGitHubPagesDemo/'
+    # меняем '/' на '/MiniLms/'
     - name: Change base-tag in index.html from / to MiniLms
       run: sed -i 's/<base href="\/" \/>/<base href="\/MiniLms\/" \/>/g' release/wwwroot/index.html
 
