@@ -1,6 +1,8 @@
 ﻿@page "/users/{Id:guid}"
 
 @inject IUserService UserService
+@inject ICategoryService CategoryService
+@inject ILessonsService LessonsService
 
 @if(_user == null && !_notFound)
 {
@@ -30,13 +32,16 @@
         <MudText Typo="Typo.h6">Уроки</MudText>
         <MudDivider Light=true Class="mb-3" />
 
+        
 
     </MudTabPanel>
 </MudTabs>
 
-@code {
+    @code {
     private bool _notFound;
     private User? _user;
+
+    private IEnumerable<Lesson> _lessons = Array.Empty<Lesson>();
 
     [Parameter]
     public Guid Id { get; set; }
@@ -47,4 +52,5 @@
         _user = await UserService.GetUserById(Id);
         _notFound = _user == null;
     }
+
 }
