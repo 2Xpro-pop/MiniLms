@@ -3,6 +3,9 @@
 @inject IUserService UserService
 @inject ICategoryService CategoryService
 @inject ILessonsService LessonsService
+@inject IAccessBlockService AccessBlockService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 @if(_user == null && !_notFound)
 {
@@ -23,25 +26,101 @@
     <MudTabPanel Text="Основная информация">
         <MudTextField @bind-Value=_user.Email Label="Email" Class="mb-3"/>
         <MudText Typo="Typo.body1">Ну или добавим любую информацию что тебе будет по душе</MudText>
+
+        <MudButton Color="Color.Primary" OnClick="SaveUser">Сохранить</MudButton>
     </MudTabPanel>
     <MudTabPanel Text="Доступ">
 
+        <div class="row">
+            <MudSwitch Class="w-auto" Label="Блокировать все" @bind-Checked:get=_user.IsBlocked @bind-Checked:set=BlockAll Color="Color.Secondary" />
+            @if (_isBlocking)
+            {
+                <MudProgressCircular  Indeterminate="true" />
+            }
+        </div>
+        
+
         <MudText Typo="Typo.h6">Категории</MudText>
         <MudDivider Light=true Class="mb-3" />
+        <MudTable Items=_categoriesBlocked
+                  Hover=true
+                  Breakpoint="Breakpoint.Sm"
+                  Loading=_isCategoriesBlocksLoading
+                  Elevation=10
+                  LoadingProgressColor="Color.Info">
+            <ToolBarContent>
+                <MudButton Color="Color.Primary" Class="mt-0" OnClick=OpenBlockCategoryDialog>Блокировать категорию</MudButton>
+            </ToolBarContent>
+            <ColGroup>
+                <col class="w-sm-40" />
+                <col style="width: 40%" />
+                <col style="width: 20%" />
+            </ColGroup>
+            <HeaderContent>
+                <MudTh>Имя</MudTh>
+                <MudTh>Заблокирован до:</MudTh>
+                <MudTh Style="text-align:center"><MudIcon Icon="@Icons.Material.Filled.Edit" /></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@_categories.First(x => x.Id == context.CategoryId).Name</MudTd>
+                <MudTd>@(context.BlockedUntil == null ? "Навечно" : context.BlockedUntil.Value.ToString("dd.MM.yyyy"))</MudTd>
+                <MudTd>
+                    <div class="ta-center-sm">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(_ => RemoveCategoryBlock(context))" />
+                    </div>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
 
         <MudText Typo="Typo.h6">Уроки</MudText>
         <MudDivider Light=true Class="mb-3" />
-
+            <MudTable Items=_lessonsBlocked
+                      Hover=true
+                      Breakpoint="Breakpoint.Sm"
+                      Loading=_isLessonsBlocksLoading
+                      Elevation=10
+                      LoadingProgressColor="Color.Info">
+                <ToolBarContent>
+                    <MudButton Color="Color.Primary" Class="mt-0" OnClick=OpenBlockLessonDialog>Блокировать Урок</MudButton>
+                </ToolBarContent>
+                <ColGroup>
+                    <col class="w-sm-40" />
+                    <col style="width: 40%" />
+                    <col style="width: 20%" />
+                </ColGroup>
+                <HeaderContent>
+                    <MudTh>Имя</MudTh>
+                    <MudTh>Заблокирован до:</MudTh>
+                    <MudTh Style="text-align:center"><MudIcon Icon="@Icons.Material.Filled.Edit" /></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@_lessons.First(x => x.Id == context.LessonId).Header</MudTd>
+                    <MudTd>@(context.BlockedUntil == null ? "Навечно" : context.BlockedUntil.Value.ToString("dd.MM.yyyy"))</MudTd>
+                    <MudTd>
+                        <div class="ta-center-sm">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(_ => RemoveLessonBlock(context))" />
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
         
 
     </MudTabPanel>
 </MudTabs>
 
-@code {
+    @code {
     private bool _notFound;
     private User? _user;
 
     private IEnumerable<Lesson> _lessons = Array.Empty<Lesson>();
+    private IEnumerable<Category> _categories = Array.Empty<Category>();
+
+    private IEnumerable<AccessBlock> _lessonsBlocked = Array.Empty<AccessBlock>();
+    private IEnumerable<AccessBlock> _categoriesBlocked = Array.Empty<AccessBlock>();
+
+    private bool _isBlocking = false;
+    private bool _isCategoriesBlocksLoading = false;
+    private bool _isLessonsBlocksLoading = false;
 
     [Parameter]
     public Guid Id { get; set; }
@@ -51,6 +130,147 @@
         await Task.Delay(3000);
         _user = await UserService.GetUserById(Id);
         _notFound = _user == null;
+
+        if(_user == null)
+        {
+            return;
+        }
+
+        _lessons = await LessonsService.GetAllLessons();
+        _categories = await CategoryService.GetCategories();
+
+        _lessonsBlocked = await AccessBlockService.GetAccessBlockLessonsForUser(_user.Id);
+        _categoriesBlocked = await AccessBlockService.GetAccessBlockCategoriesForUser(_user.Id);
+    }
+
+    private async Task BlockAll(bool isBlock)
+    {
+        _isBlocking = true;
+        try
+        {
+            await Task.Delay(2000);
+            _user.IsBlocked = isBlock;
+            await UserService.UpdateUser(_user);
+            _isBlocking = false;
+            this.StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
+        finally
+        {
+            _isBlocking = false;
+        }
+    }
+
+    private async Task RemoveCategoryBlock(AccessBlock accessBlock)
+    {
+        _isCategoriesBlocksLoading = true;
+        try
+        {
+            await Task.Delay(2000);
+            await AccessBlockService.Remove(accessBlock);
+            _isCategoriesBlocksLoading = false;
+            this.StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
+        finally
+        {
+            _isCategoriesBlocksLoading = false;
+        }
+    }
+
+    private async Task OpenBlockLessonDialog()
+    {
+        var dialog = DialogService.Show<BlockLesson>();
+        var dialogResult = await dialog.Result;
+
+        if(dialogResult.Data is AccessBlock accessBlock)
+        {
+            _isLessonsBlocksLoading = true;
+            this.StateHasChanged();
+            accessBlock.UserId = Id;
+            try
+            {
+                await Task.Delay(2000);
+                await AccessBlockService.Block(accessBlock);
+                _isLessonsBlocksLoading = false;
+                this.StateHasChanged();
+            }
+            catch
+            {
+                Snackbar.Add("Что-то пошло не так", Severity.Error);
+            }
+            finally
+            {
+                _isLessonsBlocksLoading = false;
+            }
+        }
+    }
+
+    private async Task RemoveLessonBlock(AccessBlock accessBlock)
+    {
+        _isCategoriesBlocksLoading = true;
+        try
+        {
+            await Task.Delay(2000);
+            await AccessBlockService.Remove(accessBlock);
+            _isCategoriesBlocksLoading = false;
+            this.StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
+        finally
+        {
+            _isCategoriesBlocksLoading = false;
+        }
+    }
+
+    private async Task OpenBlockCategoryDialog()
+    {
+        var dialog = DialogService.Show<BlockCategory>();
+        var dialogResult = await dialog.Result;
+
+        if (dialogResult.Data is AccessBlock accessBlock)
+        {
+            _isCategoriesBlocksLoading = true;
+            this.StateHasChanged();
+            accessBlock.UserId = Id;
+            try
+            {
+                await Task.Delay(2000);
+                await AccessBlockService.Block(accessBlock);
+                _isCategoriesBlocksLoading = false;
+                this.StateHasChanged();
+            }
+            catch
+            {
+                Snackbar.Add("Что-то пошло не так", Severity.Error);
+            }
+            finally
+            {
+                _isCategoriesBlocksLoading = false;
+            }
+        }
+    }
+
+    private async Task SaveUser()
+    {
+        try
+        {
+            await UserService.UpdateUser(_user);
+            Snackbar.Add("Сохранено", Severity.Error);
+        }
+        catch
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
     }
 
 }

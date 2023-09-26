@@ -5,7 +5,7 @@ public class AccessBlock
     public Guid Id
     {
         get; set;
-    }
+    } = Guid.NewGuid();
 
     public Guid UserId
     {

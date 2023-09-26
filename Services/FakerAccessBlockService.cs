@@ -3,14 +3,14 @@ using MiniLms.Models;
 
 namespace MiniLms.Services;
 
-public class AccessBlockService : IAccessBlockService
+public class FakerAccessBlockService : IAccessBlockService
 {
     private readonly List<AccessBlock> _accessBlocks = new();
     private readonly IUserService _userService;
     private readonly ICategoryService _categoryService;
     private readonly ILessonsService _lessonsService;
 
-    public AccessBlockService(IUserService userService, ICategoryService categoryService, ILessonsService lessonsService)
+    public FakerAccessBlockService(IUserService userService, ICategoryService categoryService, ILessonsService lessonsService)
     {
         _userService = userService;
         _categoryService = categoryService;
@@ -35,5 +35,12 @@ public class AccessBlockService : IAccessBlockService
             .Where(ab => ab.LessonId != null);
 
         return Task.FromResult(filter);
+    }
+
+    public Task Remove(AccessBlock block)
+    {
+        _accessBlocks.Remove(block);
+
+        return Task.CompletedTask;
     }
 }

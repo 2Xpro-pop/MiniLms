@@ -15,5 +15,6 @@ builder.Services.AddMudServices();
 builder.Services.AddSingleton<IUserService, FakerUserService>();
 builder.Services.AddSingleton<ICategoryService, FakerCategoryService>();
 builder.Services.AddSingleton<ILessonsService, FakerLessonService>();
+builder.Services.AddSingleton<IAccessBlockService, FakerAccessBlockService>();
 
 await builder.Build().RunAsync();

@@ -1,0 +1,63 @@
+﻿@inject ILessonsService LessonService
+
+<MudDialog>
+    <DialogContent >
+
+        <MudSelect Label="Урок" @bind-Value:get=_selectedLesson @bind-Value:set=SetLesson>
+            @foreach(var lesson in _lessons)
+            {
+                <MudSelectItem Value="lesson">@lesson.Header</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSwitch Color="Color.Primary" @bind-Checked:get=_isForever @bind-Checked:set=SetBlockForever Label="Блокировать навсегда" />
+
+        @if(!_isForever)
+        {
+            <MudDatePicker Label="Заблокирован до" @bind-Date="_accessBlock.BlockedUntil" />
+        }
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Блокировать</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    bool _isForever = true;
+    private AccessBlock _accessBlock = new();
+
+    private Lesson? _selectedLesson;
+    private IEnumerable<Lesson> _lessons = Array.Empty<Lesson>();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _lessons = await LessonService.GetAllLessons();
+        _selectedLesson = _lessons.First();
+    }
+
+    private void SetLesson(Lesson lesson)
+    {
+        _accessBlock.LessonId = lesson.Id;
+        _selectedLesson = lesson;
+    }
+
+    private void SetBlockForever(bool block)
+    {
+        _isForever = block;
+        if(block)
+        {
+            _accessBlock.BlockedUntil = DateTime.Today.AddDays(3);
+        }
+        else
+        {
+            _accessBlock.BlockedUntil = null;
+        }
+    }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(_accessBlock));
+    void Cancel() => MudDialog.Cancel();
+}

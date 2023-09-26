@@ -1,0 +1,63 @@
+﻿@inject ICategoryService CategoryService
+
+<MudDialog>
+    <DialogContent>
+
+        <MudSelect Label="Урок" @bind-Value:get=_selectedCategory @bind-Value:set=SetCategory>
+            @foreach (var Category in _Categorys)
+            {
+                <MudSelectItem Value="Category">@Category.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSwitch Color="Color.Primary" @bind-Checked:get=_isForever @bind-Checked:set=SetBlockForever Label="Блокировать навсегда" />
+
+        @if (!_isForever)
+        {
+            <MudDatePicker Label="Заблокирован до" @bind-Date="_accessBlock.BlockedUntil" />
+        }
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Блокировать</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    bool _isForever = true;
+    private AccessBlock _accessBlock = new();
+
+    private Category? _selectedCategory;
+    private IEnumerable<Category> _Categorys = Array.Empty<Category>();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _Categorys = await CategoryService.GetCategories();
+        _selectedCategory = _Categorys.First();
+    }
+
+    private void SetCategory(Category Category)
+    {
+        _accessBlock.CategoryId = Category.Id;
+        _selectedCategory = Category;
+    }
+
+    private void SetBlockForever(bool block)
+    {
+        _isForever = block;
+        if (block)
+        {
+            _accessBlock.BlockedUntil = DateTime.Today.AddDays(3);
+        }
+        else
+        {
+            _accessBlock.BlockedUntil = null;
+        }
+    }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(_accessBlock));
+    void Cancel() => MudDialog.Cancel();
+}
