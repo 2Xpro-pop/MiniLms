@@ -33,8 +33,8 @@ public class FakerCategoryService : ICategoryService
         var categoryFounded = _categories.FirstOrDefault(c => c.Id == category.Id);
         if (categoryFounded != null)
         {
-            _categories.Remove(category);
-            _categories.Add(category);
+            var index = _categories.IndexOf(categoryFounded);
+            _categories[index] = category;
         }
 
         return Task.CompletedTask;

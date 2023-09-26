@@ -35,8 +35,8 @@ public class FakerUserService : IUserService
 
         if (id != null)
         {
-            _users.Remove(id);
-            _users.Add(user);
+            var index = _users.IndexOf(id);
+            _users[index] = user;
         }
 
         return Task.CompletedTask;

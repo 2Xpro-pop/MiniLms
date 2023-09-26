@@ -4,6 +4,7 @@
 @inject ILessonsService LessonsService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudTabs Outlined=true Elevation="1" PanelClass="p-3">
     <MudTabPanel Text="Основная информация">
@@ -48,7 +49,7 @@
             </Columns>
         </MudDataGrid>
 
-        <MudButton Color="Color.Primary">Добавить Урок</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OpenAddLessonDialog">Добавить Урок</MudButton>
     </MudTabPanel>
 
     
@@ -91,7 +92,6 @@
         try
         {
             _lessons = await LessonsService.GetLessonsByCategory(_category.Id);
-            _lessons = _lessons.OrderBy(x => x.Id);
         }
         catch
         {
@@ -114,7 +114,33 @@
 
     private async Task OpenAddLessonDialog()
     {
+        var dialog = await DialogService.ShowAsync<AddLessonDialog>();
+        var dialogResult = await dialog.Result;
 
+        if(dialogResult.Data is not Lesson lesson)
+        {
+            return;
+        }
+        lesson.CategoryId = Id;
+        _lessonsLoading = true;
+        try
+        {
+
+            await Task.Delay(2000);
+            await LessonsService.CreateLesson(lesson);
+            _lessons = await LessonsService.GetLessonsByCategory(Id);
+            _lessonsLoading = false;
+
+            this.StateHasChanged();
+        }
+        catch (Exception exc)
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
+        finally
+        {
+            _lessonsLoading = false;
+        }
     }
 
     private async Task CommitedLessonChange(Lesson lesson)
@@ -125,7 +151,6 @@
             await Task.Delay(2000);
             await LessonsService.UpdateLesson(lesson);
             _lessons = await LessonsService.GetLessonsByCategory(Id);
-            _lessons = _lessons.OrderBy(x => x.Id);
             _lessonsLoading = false;
 
             this.StateHasChanged();
@@ -148,7 +173,6 @@
             await Task.Delay(2000);
             await LessonsService.DeleteLesson(lesson);
             _lessons = await LessonsService.GetLessonsByCategory(Id);
-            _lessons = _lessons.OrderBy(x => x.Id);
             _lessonsLoading = false;
             this.StateHasChanged();
         }

@@ -73,11 +73,12 @@ public class FakerLessonService: ILessonsService
     public Task UpdateLesson(Lesson lesson)
     {
         var foundedLesson = _lessons.FirstOrDefault(l => l.Id == lesson.Id);
+        
 
         if (foundedLesson != null)
         {
-            _lessons.Remove(foundedLesson);
-            _lessons.Add(lesson);
+            var index = _lessons.IndexOf(foundedLesson);
+            _lessons[index] = lesson;
         }
 
         return Task.CompletedTask;
@@ -89,7 +90,7 @@ public class FakerLessonService: ILessonsService
         {
             var numberOfLessons = new Random().Next(1, 6);
 
-            for (int i = 0; i < numberOfLessons; i++)
+            for (var i = 0; i < numberOfLessons; i++)
             {
                 var randomHeader = _lessonHeaders[new Random().Next(0, _lessonHeaders.Length)];
 
