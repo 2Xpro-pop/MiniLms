@@ -50,6 +50,6 @@
         _countForAdd = value;
     }
 
-    void Submit() => MudDialog.Close(_usersForAdd);
+    void Submit() => MudDialog.Close(_usersForAdd.Where(x => !string.IsNullOrWhiteSpace(x.Name) && !string.IsNullOrWhiteSpace(x.Email)));
     void Cancel() => MudDialog.Cancel();
 }
