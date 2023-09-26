@@ -8,8 +8,8 @@
         <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
 
         <MudTabs TabHeaderClass="bg-transparent" @bind-ActivePanelIndex=_activatedPanelIndex @ref=_mudTabs>
-            <MudTabPanel ID=@("/") Text="Уроки" OnClick=@(_ => NavigationManager.NavigateTo("/"))/>
-            <MudTabPanel ID=@("/admin") Text="Админка" OnClick=@(_ => NavigationManager.NavigateTo("/admin")) />
+            <MudTabPanel ID=@("/") Text="Уроки" OnClick=@(_ => NavigationManager.NavigateTo(""))/>
+            <MudTabPanel ID=@("/admin") Text="Админка" OnClick=@(_ => NavigationManager.NavigateTo("admin")) />
         </MudTabs>
         
         <MudSpacer />

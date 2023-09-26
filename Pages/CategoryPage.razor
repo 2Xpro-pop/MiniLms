@@ -23,7 +23,7 @@
     @foreach(var lesson in _lessons)
     {
         <div class="col-sm-3 col-6 p-4">
-            <MudButton Class=" p-0 inner-label-w100" OnClick=@(_ => NavigationManager.NavigateTo($"/lesson/{lesson.Id}"))>
+            <MudButton Class=" p-0 inner-label-w100" OnClick=@(_ => NavigationManager.NavigateTo($"lesson/{lesson.Id}"))>
                 <MudCard Class="w-100 h-100">
                     <MudCardContent>
                         <MudText Typo="Typo.h6" GutterBottom=true>@lesson.Header</MudText>
