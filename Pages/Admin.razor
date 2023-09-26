@@ -1,6 +1,8 @@
 ﻿@page "/admin"
 
 @inject IUserService UserService
+@inject ICategoryService CategoryService
+@inject ILessonsService LessonsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
@@ -48,9 +50,14 @@
 </MudExpansionPanel>
 
 <MudExpansionPanel Text="Категории уроков" Class="mt-3">
-    <MudTable Items=_categories Hover=true Breakpoint="Breakpoint.Sm" Elevation=10 LoadingProgressColor="Color.Info">
+    <MudTable Items=_categories 
+              Hover=true 
+              Breakpoint="Breakpoint.Sm"
+              Loading=_categoriesLoading
+              Elevation=10 
+              LoadingProgressColor="Color.Info">
         <ToolBarContent>
-            <MudButton Color="Color.Primary" Class="mt-0">Добавить</MudButton>
+            <MudButton Color="Color.Primary" Class="mt-0" OnClick=OpenCategoryAddDialog>Добавить</MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchCategories"
                           Placeholder="Поиск"
@@ -71,11 +78,11 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context.Name</MudTd>
-            <MudTd>3</MudTd>
+            <MudTd>@_lessons.Where(x => x.CategoryId == context.Id).Count()</MudTd>
             <MudTd>
                 <div class="ta-center-sm">
                     <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(_) => RemoveCategory(context)" />
                 </div>
             </MudTd>
         </RowTemplate>
@@ -85,16 +92,18 @@
 
 @code {
     private bool _usersLoading;
+    private bool _categoriesLoading;
     private string? _searchUsers;
     private string? _searchCategories;
     private IEnumerable<User> _users = Array.Empty<User>();
     private IEnumerable<Category> _categories = Array.Empty<Category>();
+    private IEnumerable<Lesson> _lessons = Array.Empty<Lesson>();
 
     protected override async Task OnInitializedAsync()
     {
         _users = await UserService.GetAllUsers();
-
-
+        _categories = await CategoryService.GetCategories();
+        _lessons = await LessonsService.GetAllLessons();
     }
 
     public async Task OpenUserAddDialog()
@@ -146,6 +155,58 @@
         finally
         {
             _usersLoading = false;
+        }
+    }
+
+    public async Task OpenCategoryAddDialog()
+    {
+        var reference = await DialogService.ShowAsync<AddCategoryDialog>();
+        var result = await reference.Result;
+
+        if (result.Data is Category category)
+        {
+            try
+            {
+                _categoriesLoading = true;
+                this.StateHasChanged();
+                await Task.Delay(2000);
+                await CategoryService.AddCategory(category);
+                _categories = await CategoryService.GetCategories();
+                _categoriesLoading = false;
+                this.StateHasChanged();
+                Snackbar.Add("Категория добавлена!", Severity.Success);
+            }
+            catch
+            {
+                Snackbar.Add("Произошла ошибка!", Severity.Error);
+            }
+            finally
+            {
+                _categoriesLoading = false;
+            }
+        }
+    }
+
+    public async Task RemoveCategory(Category category)
+    {
+        _categoriesLoading = true;
+        this.StateHasChanged();
+        try
+        {
+            await CategoryService.DeleteCategory(category);
+            await Task.Delay(2000);
+            _categories = await CategoryService.GetCategories();
+            _categoriesLoading = false;
+            this.StateHasChanged();
+            Snackbar.Add("Категория удалена!", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Произошла ошибка!", Severity.Error);
+        }
+        finally
+        {
+            _categoriesLoading = false;
         }
     }
 }

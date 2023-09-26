@@ -1,0 +1,41 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudTextField Label="Имя" @bind-Value=_category.Name />
+        <MudTextField Label="Описание" @bind-Value=_category.Description />
+        <MudSelect Label="Цвет" @bind-Value=_category.Color AdornmentIcon="@Icons.Material.Filled.Palette">
+            
+            @foreach(var color in _colors)
+            {
+                <MudSelectItem Value="color">
+                    <MudIcon Icon="@Icons.Material.Filled.Palette" Color="Enum.Parse<Color>(color)"/>
+                </MudSelectItem>
+            }
+
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Добавить</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private Category _category = new();
+
+    private string[] _colors = new[]
+    {
+    "Default",
+    "Primary",
+    "Secondary",
+    "Success",
+    "Info",
+    "Warning",
+    "Error",
+    "Dark"
+};
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(_category));
+    void Cancel() => MudDialog.Cancel();
+}
