@@ -3,8 +3,13 @@
     <DialogContent>
         <MudNumericField @bind-Value:get=_countForAdd @bind-Value:set=SetCountForAdd Min=1 Max=25 Label="Количество участников"/>
 
+        @{
+            var iter = 0;
+        }
         @foreach(var user in _usersForAdd)
         {
+            iter++;
+            
 
             <MudCard Outlined=true @key=user Class="my-3">
                 <MudCardContent>
@@ -12,7 +17,7 @@
                     <MudTextField @bind-Value=@user.Email Label="Email" />
                 </MudCardContent>
             </MudCard>
-
+            if (iter == _countForAdd) break;
         }
     </DialogContent>
     <DialogActions>
@@ -42,7 +47,6 @@
                 _usersForAdd.Add(new());
             }
         }
-
         _countForAdd = value;
     }
 
