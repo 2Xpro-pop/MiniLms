@@ -57,6 +57,7 @@
         try
         {
             _lessons = await LessonsService.GetLessonsByCategory(_category.Id);
+            _lessons = _lessons.OrderBy(x => x.Id);
         }
         catch
         {

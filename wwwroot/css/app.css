@@ -108,6 +108,9 @@ a, .btn-link {
 .w-sm-40 {
     width: 40%;
 }
+.w-sm-30 {
+    width: 30%;
+}
 
 .ta-center-sm {
     text-align: center;
@@ -135,6 +138,9 @@ a, .btn-link {
 
 @media (max-width: 960px) {
     .w-sm-40 {
+        width: 100%;
+    }
+    .w-sm-30 {
         width: 100%;
     }
 

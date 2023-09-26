@@ -1,0 +1,164 @@
+﻿@page "/category/edit/{Id:guid}"
+
+@inject ICategoryService CategoryService
+@inject ILessonsService LessonsService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudTabs Outlined=true Elevation="1" PanelClass="p-3">
+    <MudTabPanel Text="Основная информация">
+        <MudTextField Label="Имя" @bind-Value=_category.Name />
+        <MudTextField Label="Описание" @bind-Value=_category.Description />
+        <MudSelect Label="Цвет" @bind-Value=_category.Color AdornmentIcon="@Icons.Material.Filled.Palette">
+
+            @foreach (var color in _colors)
+            {
+                <MudSelectItem Value="color">
+                    <MudIcon Icon="@Icons.Material.Filled.Palette" Color="Enum.Parse<Color>(color)" />
+                </MudSelectItem>
+            }
+
+        </MudSelect>
+
+        <MudTextField Label="Количество уроков" Value="_lessons.Count()" ReadOnly=true/>
+
+        <MudButton Color="Color.Primary" OnClick="SaveCategory">Сохранить</MudButton>
+    </MudTabPanel>
+    <MudTabPanel Text="Уроки">
+        <MudDataGrid Items=_lessons
+                     T="Lesson"
+                     Hover=true
+                     Breakpoint="Breakpoint.Sm"
+                     Loading=_lessonsLoading
+                     Elevation=10
+                     ReadOnly=false
+                     LoadingProgressColor="Color.Info"
+                     CommittedItemChanges="(item) => CommitedLessonChange(item)"
+                     EditMode="DataGridEditMode.Form">
+            <Columns>
+                <PropertyColumn Property="x => x.Header" Title="Имя" />
+                <PropertyColumn Property="x => x.Description" Title="Описание" />
+                <PropertyColumn Property="x => x.YoutubeUrl" Title="Ссылка на ютуб" />
+                <TemplateColumn Hidden=false>
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(_) => RemoveLesson(context.Item)"/> 
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+
+        <MudButton Color="Color.Primary">Добавить Урок</MudButton>
+    </MudTabPanel>
+
+    
+</MudTabs>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private bool _notFound;
+    private Category? _category;
+
+    private bool _lessonsLoading;
+
+    private IEnumerable<Lesson> _lessons = Array.Empty<Lesson>();
+
+    private string[] _colors = new[]
+    {
+        "Default",
+        "Primary",
+        "Secondary",
+        "Success",
+        "Info",
+        "Warning",
+        "Error",
+        "Dark"
+    };
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _category = await CategoryService.GetCategory(Id);
+        _notFound = _category == null;
+
+        if (_category == null)
+        {
+            return;
+        }
+
+        try
+        {
+            _lessons = await LessonsService.GetLessonsByCategory(_category.Id);
+            _lessons = _lessons.OrderBy(x => x.Id);
+        }
+        catch
+        {
+            _lessons = Array.Empty<Lesson>();
+        }
+    }
+
+    private async Task SaveCategory()
+    {
+        try
+        {
+            await CategoryService.UpdateCategory(_category);
+            Snackbar.Add("Сохранено", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
+    }
+
+    private async Task OpenAddLessonDialog()
+    {
+
+    }
+
+    private async Task CommitedLessonChange(Lesson lesson)
+    {
+        _lessonsLoading = true;
+        try
+        {
+            await Task.Delay(2000);
+            await LessonsService.UpdateLesson(lesson);
+            _lessons = await LessonsService.GetLessonsByCategory(Id);
+            _lessons = _lessons.OrderBy(x => x.Id);
+            _lessonsLoading = false;
+
+            this.StateHasChanged();
+        }
+        catch(Exception exc)
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
+        finally
+        {
+            _lessonsLoading = false;
+        }
+    }
+
+    private async Task RemoveLesson(Lesson lesson)
+    {
+        _lessonsLoading = true;
+        try
+        {
+            await Task.Delay(2000);
+            await LessonsService.DeleteLesson(lesson);
+            _lessons = await LessonsService.GetLessonsByCategory(Id);
+            _lessons = _lessons.OrderBy(x => x.Id);
+            _lessonsLoading = false;
+            this.StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add("Что-то пошло не так", Severity.Error);
+        }
+        finally
+        {
+            _lessonsLoading = false;
+        }
+    }
+}

@@ -81,7 +81,7 @@
             <MudTd>@_lessons.Where(x => x.CategoryId == context.Id).Count()</MudTd>
             <MudTd>
                 <div class="ta-center-sm">
-                    <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" OnClick="@((_) => NavigationManager.NavigateTo($"category/edit/{context.Id}"))" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(_) => RemoveCategory(context)" />
                 </div>
             </MudTd>

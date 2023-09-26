@@ -38,8 +38,19 @@ public class FakerLessonService: ILessonsService
         _categoryService = categoryService;
     }
 
-    public Task CreateLesson(Lesson lesson) => throw new NotImplementedException();
-    public Task DeleteLesson(Lesson lesson) => throw new NotImplementedException();
+    public Task CreateLesson(Lesson lesson)
+    {
+        _lessons.Add(lesson);
+
+        return Task.CompletedTask;
+    }
+    public Task DeleteLesson(Lesson lesson)
+    {
+
+        _lessons.Remove(lesson);
+
+        return Task.CompletedTask;
+    }
     public async Task<IEnumerable<Lesson>> GetAllLessons()
     {
         if (_lessons.Count == 0)
@@ -59,7 +70,18 @@ public class FakerLessonService: ILessonsService
 
         return _lessons.Where(l => l.CategoryId == categoryId);
     }
-    public Task UpdateLesson(Lesson lesson) => throw new NotImplementedException();
+    public Task UpdateLesson(Lesson lesson)
+    {
+        var foundedLesson = _lessons.FirstOrDefault(l => l.Id == lesson.Id);
+
+        if (foundedLesson != null)
+        {
+            _lessons.Remove(foundedLesson);
+            _lessons.Add(lesson);
+        }
+
+        return Task.CompletedTask;
+    }
 
     private async Task Seed()
     {
