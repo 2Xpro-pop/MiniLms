@@ -26,15 +26,17 @@ jobs:
     - name: Publish .NET Core Project
       run: dotnet publish MiniLms.csproj -c Release --output release --nologo
 
+    # меняем '/' на '/BlazorGitHubPagesDemo/'
+    - name: Change base-tag in index.html from / to MiniLms
+      run: sed -i 's/<base href="\/" \/>/<base href="\/MiniLms\/" \/>/g' release/wwwroot/index.html
+
     - name: Uploading files to gh-pages branch
       uses: JamesIves/github-pages-deploy-action@4.1.4
       with:
         branch: gh-pages
         folder: release/wwwroot
         
-    # меняем '/' на '/BlazorGitHubPagesDemo/'
-    - name: Change base-tag in index.html from / to MiniLms
-      run: sed -i 's/<base href="\/" \/>/<base href="\/MiniLms\/" \/>/g' release/wwwroot/index.html
+    
 
     # отключаем jekyll
     - name: Add .nojekyll file
