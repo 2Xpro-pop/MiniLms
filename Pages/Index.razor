@@ -2,12 +2,16 @@
 
 @inject ICategoryService CategoryService
 @inject NavigationManager NavigationManager
+@inject IBrowserViewportService BrowserViewportService
+
+@implements IBrowserViewportObserver
+@implements IAsyncDisposable
 
 <PageTitle>Index</PageTitle>
 
 
 <MudTimeline TimelineOrientation="TimelineOrientation.Vertical"
-             TimelinePosition="TimelinePosition.Alternate"
+             TimelinePosition=_timelineOrientation
              DisableModifiers=false>
     @foreach(var category in _categories)
     {
@@ -30,10 +34,48 @@
 </MudTimeline>
 
 @code{
+    private TimelinePosition _timelineOrientation = TimelinePosition.Alternate;
     private IEnumerable<Category> _categories = Array.Empty<Category>();
 
     protected override async Task OnInitializedAsync()
     {
         _categories = await CategoryService.GetCategories();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await BrowserViewportService.SubscribeAsync(this, fireImmediately: true);
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async ValueTask DisposeAsync() => await BrowserViewportService.UnsubscribeAsync(this);
+
+    Guid IBrowserViewportObserver.Id { get; } = Guid.NewGuid();
+
+    ResizeOptions IBrowserViewportObserver.ResizeOptions { get; } = new()
+        {
+            ReportRate = 250,
+            NotifyOnBreakpointOnly = true
+        };
+
+    Task IBrowserViewportObserver.NotifyBrowserViewportChangeAsync(BrowserViewportEventArgs browserViewportEventArgs)
+    {
+        var breakpoint = browserViewportEventArgs.Breakpoint;
+        if (breakpoint == Breakpoint.Sm ||
+           breakpoint == Breakpoint.Xs)
+        {
+            _timelineOrientation = TimelinePosition.Start;
+        }
+        else
+        {
+            _timelineOrientation = TimelinePosition.Alternate;
+        }
+
+
+        return InvokeAsync(StateHasChanged);
     }
 }

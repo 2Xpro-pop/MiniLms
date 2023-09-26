@@ -2,15 +2,18 @@
 
 @inject NavigationManager NavigationManager
 
+
 <MudLayout>
     <MudAppBar Elevation="1" Fixed=true Class="px-5">
 
         <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
 
-        <MudTabs TabHeaderClass="bg-transparent" @bind-ActivePanelIndex=_activatedPanelIndex @ref=_mudTabs>
-            <MudTabPanel ID=@("/") Text="Уроки" OnClick=@(_ => NavigationManager.NavigateTo(""))/>
-            <MudTabPanel ID=@("/admin") Text="Админка" OnClick=@(_ => NavigationManager.NavigateTo("admin")) />
-        </MudTabs>
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudTabs TabHeaderClass="bg-transparent" @bind-ActivePanelIndex=_activatedPanelIndex @ref=_mudTabs>
+                <MudTabPanel ID=@("/") Text="Уроки" OnClick=@(_ => NavigationManager.NavigateTo("")) />
+                <MudTabPanel ID=@("/admin") Text="Админка" OnClick=@(_ => NavigationManager.NavigateTo("admin")) />
+            </MudTabs>
+        </MudHidden>
         
         <MudSpacer />
 
@@ -20,6 +23,12 @@
             </ActivatorContent>
             <ChildContent>
                 <MudMenuItem>Профиль</MudMenuItem>
+
+                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                    <MudMenuItem Href="">Уроки</MudMenuItem>
+                    <MudMenuItem Href="admin">Админка</MudMenuItem>
+                </MudHidden>
+                
                 <MudMenuItem>Выйти</MudMenuItem>
             </ChildContent>
         </MudMenu>
@@ -62,5 +71,4 @@
             return;
         }
     }
-
 }
